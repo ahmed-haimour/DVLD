@@ -1,0 +1,8 @@
+<Solution>
+    <Folder Name="/src/">
+    <Project Path="src/DrivingLicenseManagement.Api/DrivingLicenseManagement.Api.csproj" />
+    <Project Path="src/DrivingLicenseManagement.Application/DrivingLicenseManagement.Application.csproj" />
+    <Project Path="src/DrivingLicenseManagement.Domain/DrivingLicenseManagement.Domain.csproj" />
+    <Project Path="src/DrivingLicenseManagement.Infrastructure/DrivingLicenseManagement.Infrastructure.csproj" />
+    </Folder>
+</Solution>
