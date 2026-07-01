@@ -20,6 +20,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<LicenseClass> LicenseClasses => Set<LicenseClass>();
     public DbSet<LocalDrivingLicenseApplication> LocalDrivingLicenseApplications => Set<LocalDrivingLicenseApplication>();
     public DbSet<Person> People => Set<Person>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Test> Tests => Set<Test>();
     public DbSet<TestAppointment> TestAppointments => Set<TestAppointment>();
     public DbSet<TestType> TestTypes => Set<TestType>();

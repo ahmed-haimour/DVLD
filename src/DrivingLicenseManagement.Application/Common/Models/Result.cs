@@ -53,4 +53,14 @@ public sealed class Result<T> : Result
     {
         return new Result<T>(error);
     }
+
+    public static implicit operator Result<T>(T value)
+    {
+        return Success(value);
+    }
+
+    public static implicit operator Result<T>(Error error)
+    {
+        return Failure(error);
+    }
 }

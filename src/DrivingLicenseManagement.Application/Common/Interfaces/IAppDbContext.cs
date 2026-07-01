@@ -18,6 +18,7 @@ public interface IAppDbContext
     public DbSet<Test> Tests { get; }
     public DbSet<TestAppointment> TestAppointments { get; }
     public DbSet<TestType> TestTypes { get; }
+    public DbSet<RefreshToken> RefreshTokens { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

@@ -18,6 +18,10 @@ public static class DependencyInjection
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
 
         services.AddScoped<IIdentityService, IdentityService>();
+        services.AddScoped<ITokenProvider, TokenProvider>();
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUser, CurrentUser>();
 
         services.AddDistributedSqlServerCache(options =>
         {
