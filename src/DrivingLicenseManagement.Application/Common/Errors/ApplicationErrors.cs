@@ -18,6 +18,10 @@ public static class ApplicationErrors
         "Person.CannotBeDeleted",
         "The selected person cannot be deleted because they have related records.");
 
+    public static readonly Error PersonAlreadyHasUserAccount = Error.Conflict(
+        "Person.AlreadyHasUserAccount",
+        "The selected person already has a user account.");
+
     public static readonly Error UserNotAuthenticated = Error.Unauthorized(
         "User.NotAuthenticated",
         "There is no authenticated user.");
@@ -25,4 +29,8 @@ public static class ApplicationErrors
         public static readonly Error RefreshTokenInvalid = Error.Unauthorized(
         "Refresh_Token_Invalid",
         "The refresh token is invalid, expired, or revoked.");
+
+        public static readonly Error PersonEmailMismatch = Error.Conflict(
+            "Person.EmailMismatch",
+            "The provided email does not match the person's email.");
 }
