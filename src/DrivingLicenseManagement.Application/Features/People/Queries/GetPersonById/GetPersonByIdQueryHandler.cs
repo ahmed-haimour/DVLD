@@ -18,6 +18,7 @@ public sealed class GetPersonByIdQueryHandler(IAppDbContext context, ILogger<Get
     public async Task<Result<PersonDto>> Handle(GetPersonByIdQuery request, CancellationToken cancellationToken)
     {
         var person  = await _context.People.AsNoTracking()
+        .Include(p => p.NationalityCountry)
         .FirstOrDefaultAsync(p=>p.Id == request.Id, cancellationToken);
 
         if(person is null)

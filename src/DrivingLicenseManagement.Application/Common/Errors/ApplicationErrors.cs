@@ -33,4 +33,12 @@ public static class ApplicationErrors
         public static readonly Error PersonEmailMismatch = Error.Conflict(
             "Person.EmailMismatch",
             "The provided email does not match the person's email.");
+
+    public static readonly Error InvalidPersonFilterValue = Error.Validation(
+        "Person.InvalidFilterValue",
+        "The provided filter value is not valid for the selected filter field.");
+
+    public static readonly Error InvalidUserFilterValue = Error.Validation(
+        "User.InvalidFilterValue",
+        "The provided filter value is not valid for the selected filter field.");
 }

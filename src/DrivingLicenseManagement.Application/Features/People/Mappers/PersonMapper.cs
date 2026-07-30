@@ -20,6 +20,9 @@ public static class PersonMapper
             person.Phone,
             person.Email,
             person.NationalityCountryId,
+            // Null-safe: a caller that queries People without Include(NationalityCountry)
+            // gets an empty name rather than an NRE.
+            person.NationalityCountry?.Name ?? string.Empty,
             person.ImagePath);
     }
 

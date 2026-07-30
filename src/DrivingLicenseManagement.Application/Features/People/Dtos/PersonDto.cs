@@ -16,4 +16,5 @@ public sealed record PersonDto(
     string Phone,
     string? Email,
     Guid NationalityCountryId,
+    string NationalityCountryName,
     string? ImagePath);

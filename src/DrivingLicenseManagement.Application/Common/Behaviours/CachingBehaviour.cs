@@ -46,8 +46,20 @@ public sealed class CachingBehavior<TRequest, TResponse>(HybridCache cache,
             tags: request.Tags,
             cancellationToken: ct);
 
-        return shouldReturnUncached
-            ? uncachedResponse!
+        if (shouldReturnUncached)
+        {
+            // The factory has to return something, so a failure writes a placeholder into the
+            // cache. Evict it so the next caller re-executes the handler instead of being
+            // served that placeholder for the rest of the TTL.
+            await _cache.RemoveAsync(request.CacheKey, ct);
+
+            return uncachedResponse!;
+        }
+
+        // Defensive: a null here means a concurrent request evicted the key between the write
+        // and this read. Re-run the handler rather than handing back null.
+        return response is null
+            ? await next(ct)
             : response;
     }
 

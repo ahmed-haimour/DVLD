@@ -21,6 +21,7 @@ public sealed class GetPersonByNationalNoQueryHandler(IAppDbContext context, ILo
 
         var person = await _context.People
             .AsNoTracking()
+            .Include(person => person.NationalityCountry)
             .FirstOrDefaultAsync(person => person.NationalNumber == nationalNumber, cancellationToken);
 
         if (person is null)
