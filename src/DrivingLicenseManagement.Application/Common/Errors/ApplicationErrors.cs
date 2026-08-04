@@ -34,11 +34,23 @@ public static class ApplicationErrors
             "Person.EmailMismatch",
             "The provided email does not match the person's email.");
 
-    public static readonly Error InvalidPersonFilterValue = Error.Validation(
-        "Person.InvalidFilterValue",
-        "The provided filter value is not valid for the selected filter field.");
+    public static readonly Error ApplicationTypeNotFound = Error.NotFound(
+        "ApplicationType.NotFound",
+        "The selected application type was not found.");
 
-    public static readonly Error InvalidUserFilterValue = Error.Validation(
-        "User.InvalidFilterValue",
-        "The provided filter value is not valid for the selected filter field.");
+    public static readonly Error LicenseClassNotFound = Error.NotFound(
+        "LicenseClass.NotFound",
+        "The selected license class was not found.");
+
+    public static readonly Error ActiveLocalDrivingLicenseApplicationExists = Error.Conflict(
+        "LocalDrivingLicenseApplication.ActiveApplicationExists",
+        "The person already has an active local driving license application for this license class.");
+
+    public static readonly Error LocalDrivingLicenseApplicationNotFound = Error.NotFound(
+        "LocalDrivingLicenseApplication.NotFound",
+        "The selected local driving license application was not found.");
+
+    public static readonly Error LocalDrivingLicenseApplicationCannotBeCancelled = Error.Conflict(
+        "LocalDrivingLicenseApplication.CannotBeCancelled",
+        "Only a new local driving license application can be cancelled.");
 }

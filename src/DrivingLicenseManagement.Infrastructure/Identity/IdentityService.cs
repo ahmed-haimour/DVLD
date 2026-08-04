@@ -160,30 +160,24 @@ public class IdentityService(
             switch (filterBy)
             {
                 case UserFilterBy.UserId:
-                    if (!Guid.TryParse(value, out var userId))
-                    {
-                        return ApplicationErrors.InvalidUserFilterValue;
-                    }
-
-                    query = query.Where(user => user.Id == userId);
+                    // Search screens prefer empty results over a validation error, so an
+                    // id that isn't a valid GUID simply matches nothing.
+                    query = Guid.TryParse(value, out var userId)
+                        ? query.Where(user => user.Id == userId)
+                        : query.Where(user => false);
                     break;
 
                 case UserFilterBy.PersonId:
-                    if (!Guid.TryParse(value, out var personId))
-                    {
-                        return ApplicationErrors.InvalidUserFilterValue;
-                    }
-
-                    query = query.Where(user => user.PersonId == personId);
+                    query = Guid.TryParse(value, out var personId)
+                        ? query.Where(user => user.PersonId == personId)
+                        : query.Where(user => false);
                     break;
 
                 case UserFilterBy.IsActive:
-                    if (!bool.TryParse(value, out var isActive))
-                    {
-                        return ApplicationErrors.InvalidUserFilterValue;
-                    }
-
-                    query = query.Where(user => user.IsActive == isActive);
+                    // A value that isn't 'true'/'false' matches nothing rather than failing validation.
+                    query = bool.TryParse(value, out var isActive)
+                        ? query.Where(user => user.IsActive == isActive)
+                        : query.Where(user => false);
                     break;
 
                 case UserFilterBy.Username:

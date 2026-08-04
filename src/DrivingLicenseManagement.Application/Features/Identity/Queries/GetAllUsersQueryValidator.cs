@@ -22,15 +22,8 @@ public sealed class GetAllUsersQueryValidator : AbstractValidator<GetAllUsersQue
                 .NotEmpty().WithMessage("A filter value is required when a filter field is selected.")
                 .MaximumLength(100).WithMessage("Filter value must not exceed 100 characters.");
 
-            RuleFor(query => query.FilterValue)
-                .Must(value => Guid.TryParse(value, out _))
-                .When(query => query.FilterBy is UserFilterBy.UserId or UserFilterBy.PersonId)
-                .WithMessage("The id must be a valid GUID.");
-
-            RuleFor(query => query.FilterValue)
-                .Must(value => bool.TryParse(value, out _))
-                .When(query => query.FilterBy == UserFilterBy.IsActive)
-                .WithMessage("Active status must be either 'true' or 'false'.");
+            // Type-specific checks (GUID / bool) are intentionally omitted: search screens
+            // return empty results for an unparseable filter value rather than a validation error.
         });
     }
 }

@@ -1,4 +1,3 @@
-using DrivingLicenseManagement.Application.Common.Errors;
 using DrivingLicenseManagement.Application.Common.Interfaces;
 using DrivingLicenseManagement.Application.Common.Models;
 using DrivingLicenseManagement.Application.Features.People.Dtos;
@@ -29,22 +28,19 @@ public sealed class GetPeopleQueryHandler(IAppDbContext context)
             switch (request.FilterBy)
             {
                 case PersonFilterBy.PersonId:
-                    if (!Guid.TryParse(filterValue, out var personId))
-                    {
-                        return Result<PaginatedList<PersonDto>>.Failure(ApplicationErrors.InvalidPersonFilterValue);
-                    }
-
-                    query = query.Where(person => person.Id == personId);
+                    // Search screens prefer empty results over a validation error, so an
+                    // id that isn't a valid GUID simply matches nothing.
+                    query = Guid.TryParse(filterValue, out var personId)
+                        ? query.Where(person => person.Id == personId)
+                        : query.Where(person => false);
                     break;
 
                 case PersonFilterBy.Gender:
                     // TryParse also accepts numeric strings, so IsDefined rejects out-of-range values.
-                    if (!Enum.TryParse<Gender>(filterValue, ignoreCase: true, out var gender) || !Enum.IsDefined(gender))
-                    {
-                        return Result<PaginatedList<PersonDto>>.Failure(ApplicationErrors.InvalidPersonFilterValue);
-                    }
-
-                    query = query.Where(person => person.Gender == gender);
+                    // An unrecognized gender matches nothing rather than failing validation.
+                    query = Enum.TryParse<Gender>(filterValue, ignoreCase: true, out var gender) && Enum.IsDefined(gender)
+                        ? query.Where(person => person.Gender == gender)
+                        : query.Where(person => false);
                     break;
 
                 case PersonFilterBy.NationalNo:
