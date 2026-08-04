@@ -46,6 +46,10 @@ public static class ApplicationErrors
         "LocalDrivingLicenseApplication.ActiveApplicationExists",
         "The person already has an active local driving license application for this license class.");
 
+    public static readonly Error ApplicantBelowMinimumAge = Error.Conflict(
+        "LocalDrivingLicenseApplication.ApplicantBelowMinimumAge",
+        "The applicant does not meet the minimum age required for the selected license class.");
+
     public static readonly Error LocalDrivingLicenseApplicationNotFound = Error.NotFound(
         "LocalDrivingLicenseApplication.NotFound",
         "The selected local driving license application was not found.");
@@ -53,4 +57,8 @@ public static class ApplicationErrors
     public static readonly Error LocalDrivingLicenseApplicationCannotBeCancelled = Error.Conflict(
         "LocalDrivingLicenseApplication.CannotBeCancelled",
         "Only a new local driving license application can be cancelled.");
+
+    public static readonly Error TestTypeNotFound = Error.NotFound(
+        "TestType.NotFound",
+        "The selected test type was not found.");
 }

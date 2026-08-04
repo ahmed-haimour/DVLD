@@ -34,24 +34,42 @@ public sealed class CreateLocalDrivingLicenseApplicationCommandHandler(
             return Result<Guid>.Failure(ApplicationErrors.UserNotAuthenticated);
         }
 
-        bool personExists = await _context.People
-            .AnyAsync(person => person.Id == request.ApplicantPersonId, cancellationToken);
+        var dateOfBirth = await _context.People
+            .Where(person => person.Id == request.ApplicantPersonId)
+            .Select(person => (DateTime?)person.DateOfBirth)
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (!personExists)
+        if (dateOfBirth is null)
         {
             _logger.LogWarning("Person with id {PersonId} was not found.", request.ApplicantPersonId);
 
             return Result<Guid>.Failure(ApplicationErrors.PersonNotFound);
         }
 
-        bool licenseClassExists = await _context.LicenseClasses
-            .AnyAsync(licenseClass => licenseClass.Id == request.LicenseClassId, cancellationToken);
+        var minimumAllowedAge = await _context.LicenseClasses
+            .Where(licenseClass => licenseClass.Id == request.LicenseClassId)
+            .Select(licenseClass => (byte?)licenseClass.MinimumAllowedAge)
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (!licenseClassExists)
+        if (minimumAllowedAge is null)
         {
             _logger.LogWarning("License class with id {LicenseClassId} was not found.", request.LicenseClassId);
 
             return Result<Guid>.Failure(ApplicationErrors.LicenseClassNotFound);
+        }
+
+        var applicantAge = CalculateAge(dateOfBirth.Value, DateTime.UtcNow.Date);
+
+        if (applicantAge < minimumAllowedAge.Value)
+        {
+            _logger.LogWarning(
+                "Person with id {PersonId} (age {Age}) is below the minimum age {MinimumAllowedAge} for license class {LicenseClassId}.",
+                request.ApplicantPersonId,
+                applicantAge,
+                minimumAllowedAge.Value,
+                request.LicenseClassId);
+
+            return Result<Guid>.Failure(ApplicationErrors.ApplicantBelowMinimumAge);
         }
 
         var applicationType = await _context.ApplicationTypes
@@ -113,5 +131,18 @@ public sealed class CreateLocalDrivingLicenseApplicationCommandHandler(
             localApplication.Id);
 
         return Result<Guid>.Success(localApplication.Id);
+    }
+
+    private static int CalculateAge(DateTime dateOfBirth, DateTime asOf)
+    {
+        var age = asOf.Year - dateOfBirth.Year; 
+
+        // Birthday hasn't occurred yet this year, so the applicant is one year younger.
+        if (dateOfBirth.Date > asOf.AddYears(-age)) // 2005/5/5 -- 2005/5/4
+        {
+            age--;
+        }
+
+        return age;
     }
 }
