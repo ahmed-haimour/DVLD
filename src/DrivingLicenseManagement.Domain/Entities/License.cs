@@ -19,4 +19,5 @@ public class License : Entity
     public Driver Driver { get; set; } = null!;
     public LicenseClass LicenseClass { get; set; } = null!;
     public ICollection<DetainedLicense> Detentions { get; set; } = new List<DetainedLicense>();
+    public ICollection<InternationalLicense> InternationalLicenses { get; set; } = new List<InternationalLicense>();
 }

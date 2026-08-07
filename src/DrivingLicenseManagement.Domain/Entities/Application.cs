@@ -17,6 +17,7 @@ public class Application : Entity
     public ApplicationType ApplicationType { get; set; } = null!;
     public LocalDrivingLicenseApplication? LocalDrivingLicenseApplication { get; set; }
     public License? License { get; set; }
+    public InternationalLicense? InternationalLicense { get; set; }
     public DetainedLicense? ReleasedDetainedLicense { get; set; }
     public TestAppointment? RetakeTestAppointment { get; set; }
 }

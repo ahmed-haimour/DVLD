@@ -72,17 +72,17 @@ public sealed class CreateLocalDrivingLicenseApplicationCommandHandler(
             return Result<Guid>.Failure(ApplicationErrors.ApplicantBelowMinimumAge);
         }
 
-        var applicationType = await _context.ApplicationTypes
-            .AsNoTracking()
-            .Where(at => at.ApplicationTypeTitle == ApplicationTypeConstants.NewLocalDrivingLicense)
-            .Select(at => new { at.Id, at.ApplicationTypeFees })
-            .SingleOrDefaultAsync(cancellationToken);
+        // Resolved by fixed id (never by title — administrators may rename application types).
+        var applicationTypeFees = await _context.ApplicationTypes
+            .Where(at => at.Id == ApplicationTypeIds.NewLocalDrivingLicense)
+            .Select(at => (decimal?)at.ApplicationTypeFees)
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (applicationType is null)
+        if (applicationTypeFees is null)
         {
             _logger.LogWarning(
-                "Application type '{ApplicationTypeTitle}' was not found.",
-                ApplicationTypeConstants.NewLocalDrivingLicense);
+                "Application type with id {ApplicationTypeId} was not found.",
+                ApplicationTypeIds.NewLocalDrivingLicense);
 
             return Result<Guid>.Failure(ApplicationErrors.ApplicationTypeNotFound);
         }
@@ -104,16 +104,34 @@ public sealed class CreateLocalDrivingLicenseApplicationCommandHandler(
             return Result<Guid>.Failure(ApplicationErrors.ActiveLocalDrivingLicenseApplicationExists);
         }
 
+        // Check if the applicant already has an active license for the requested license class
+        bool alreadyHasLicense = await _context.Licenses
+            .AnyAsync(license =>
+            license.Driver.PersonId == request.ApplicantPersonId &&
+            license.LicenseClassId == request.LicenseClassId &&
+            license.IsActive,
+            cancellationToken);
+
+        if (alreadyHasLicense)
+        {
+            _logger.LogWarning(
+                "Person with id {PersonId} already has an active license for license class {LicenseClassId}.",
+                request.ApplicantPersonId,
+                request.LicenseClassId);
+
+            return Result<Guid>.Failure(ApplicationErrors.ActiveLicenseAlreadyExists);
+        }
+
         var now = DateTime.UtcNow;
 
         var application = new DomainApplication
         {
             ApplicantPersonId = request.ApplicantPersonId,
             ApplicationDate = now,
-            ApplicationTypeId = applicationType.Id,
+            ApplicationTypeId = ApplicationTypeIds.NewLocalDrivingLicense,
             ApplicationStatus = ApplicationStatus.New,
             LastStatusDate = now,
-            PaidFees = applicationType.ApplicationTypeFees, // COPIED — historical value, never derived from LicenseClass.ClassFees
+            PaidFees = applicationTypeFees.Value, // COPIED — historical value, never derived from LicenseClass.ClassFees
             CreatedByUserId = userId,
         };
 

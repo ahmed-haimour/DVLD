@@ -41,6 +41,8 @@ public sealed class GetLocalDrivingLicenseApplicationDetailsQueryHandler(
                 ldl.Application.ApplicantPerson.ThirdName,
                 ldl.Application.ApplicantPerson.LastName,
                 ldl.Application.CreatedByUserId,
+                // Count passed test results (a test type can only be passed once), not attempts.
+                PassedTests = ldl.TestAppointments.Count(ta => ta.Test != null && ta.Test.TestResult),
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -66,8 +68,7 @@ public sealed class GetLocalDrivingLicenseApplicationDetailsQueryHandler(
             row.Id,
             row.ApplicationId,
             row.LicenseClassName,
-            // Passed-test count is deferred until the Test feature exists.
-            PassedTests: 0,
+            row.PassedTests,
             row.ApplicationStatus,
             row.ApplicationDate,
             row.LastStatusDate,

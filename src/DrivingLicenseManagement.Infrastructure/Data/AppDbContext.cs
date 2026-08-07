@@ -17,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<DetainedLicense> DetainedLicenses => Set<DetainedLicense>();
     public DbSet<Driver> Drivers => Set<Driver>();
     public DbSet<License> Licenses => Set<License>();
+    public DbSet<InternationalLicense> InternationalLicenses => Set<InternationalLicense>();
     public DbSet<LicenseClass> LicenseClasses => Set<LicenseClass>();
     public DbSet<LocalDrivingLicenseApplication> LocalDrivingLicenseApplications => Set<LocalDrivingLicenseApplication>();
     public DbSet<Person> People => Set<Person>();

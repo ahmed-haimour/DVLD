@@ -61,4 +61,60 @@ public static class ApplicationErrors
     public static readonly Error TestTypeNotFound = Error.NotFound(
         "TestType.NotFound",
         "The selected test type was not found.");
+
+    public static readonly Error LocalDrivingLicenseApplicationNotActive = Error.Conflict(
+        "LocalDrivingLicenseApplication.NotActive",
+        "The local driving license application is not active.");
+
+    public static readonly Error TestAppointmentNotFound = Error.NotFound(
+        "TestAppointment.NotFound",
+        "The selected test appointment was not found.");
+
+    public static readonly Error TestAppointmentLocked = Error.Conflict(
+        "TestAppointment.Locked",
+        "This test appointment is locked and can no longer be modified.");
+
+    public static readonly Error ActiveTestAppointmentExists = Error.Conflict(
+        "TestAppointment.ActiveAppointmentExists",
+        "There is already an active appointment for this test type.");
+
+    public static readonly Error PreviousTestNotPassed = Error.Conflict(
+        "TestAppointment.PreviousTestNotPassed",
+        "The previous test must be passed before scheduling this test.");
+
+    public static readonly Error TestTypeAlreadyPassed = Error.Conflict(
+        "TestAppointment.TestTypeAlreadyPassed",
+        "The applicant has already passed this test type.");
+
+    public static readonly Error RetakeRequired = Error.Conflict(
+        "TestAppointment.RetakeRequired",
+        "A previous attempt for this test type already exists; schedule a retake instead.");
+
+    public static readonly Error NoFailedTestToRetake = Error.Conflict(
+        "TestAppointment.NoFailedTestToRetake",
+        "There is no failed attempt for this test type to retake.");
+
+    public static readonly Error TestNotFound = Error.NotFound(
+        "Test.NotFound",
+        "The selected test was not found.");
+
+    public static readonly Error ActiveLicenseAlreadyExists = Error.Conflict(
+        "Application.ActiveLicenseAlreadyExists",
+        "The applicant already has an active license for this license class.");
+
+    public static readonly Error RequiredTestsNotPassed = Error.Conflict(
+        "License.RequiredTestsNotPassed",
+        "The applicant has not passed all required tests.");
+
+    public static readonly Error LicenseNotFound = Error.NotFound(
+        "License.NotFound",
+        "The selected license was not found.");
+
+    public static readonly Error LicenseNotActive = Error.Conflict(
+        "License.NotActive",
+        "The license is not active.");
+
+    public static readonly Error LicenseNotExpired = Error.Conflict(
+        "License.NotExpired",
+        "Cannot renew a license that has not yet expired.");
 }

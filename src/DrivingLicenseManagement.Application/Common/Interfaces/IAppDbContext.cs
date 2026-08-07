@@ -12,6 +12,7 @@ public interface IAppDbContext
     public DbSet<DetainedLicense> DetainedLicenses { get; }
     public DbSet<Driver> Drivers { get; }
     public DbSet<License> Licenses { get; }
+    public DbSet<InternationalLicense> InternationalLicenses { get; }
     public DbSet<LicenseClass> LicenseClasses { get; }
     public DbSet<LocalDrivingLicenseApplication> LocalDrivingLicenseApplications { get; }
     public DbSet<Person> People { get; }
