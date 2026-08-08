@@ -1,6 +1,6 @@
-namespace DrivingLicenseManagement.Application.Features.Drivers.Dtos;
+namespace DrivingLicenseManagement.Application.Features.Licenses.Dtos;
 
-public sealed record PersonLicenseResponse(
+public sealed record PersonLocalLicenseResponse(
     Guid LicenseId,
     Guid ApplicationId,
     string ClassName,

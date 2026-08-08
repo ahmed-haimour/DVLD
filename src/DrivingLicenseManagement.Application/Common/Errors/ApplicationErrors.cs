@@ -129,4 +129,8 @@ public static class ApplicationErrors
     public static readonly Error LicenseNotExpired = Error.Conflict(
         "License.NotExpired",
         "Cannot renew a license that has not yet expired.");
+
+    public static readonly Error InternationalLicenseNotFound = Error.NotFound(
+        "InternationalLicense.NotFound",
+        "The selected international license was not found.");
 }
