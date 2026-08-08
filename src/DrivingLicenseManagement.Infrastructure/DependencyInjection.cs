@@ -1,11 +1,13 @@
 using DrivingLicenseManagement.Application.Common.Interfaces;
 using DrivingLicenseManagement.Infrastructure.Data;
 using DrivingLicenseManagement.Infrastructure.Identity;
+using DrivingLicenseManagement.Infrastructure.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace DrivingLicenseManagement.Infrastructure;
 
@@ -14,6 +16,9 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+        services.Configure<AppSettings>(configuration);
+        services.AddSingleton<IAppSettings>(sp => sp.GetRequiredService<IOptions<AppSettings>>().Value);
 
         services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());

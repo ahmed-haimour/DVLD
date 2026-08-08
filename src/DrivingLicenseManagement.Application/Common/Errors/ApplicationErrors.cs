@@ -106,6 +106,18 @@ public static class ApplicationErrors
         "License.RequiredTestsNotPassed",
         "The applicant has not passed all required tests.");
 
+    public static readonly Error LicenseExpired = Error.Conflict(
+        "License.Expired",
+        "The license is expired.");
+
+    public static readonly Error LicenseNotEligibleForInternational = Error.Conflict(
+        "License.NotEligibleForInternational",
+        "Only an ordinary (Class 3) driving license is eligible for an international license.");
+
+    public static readonly Error ActiveInternationalLicenseExists = Error.Conflict(
+        "InternationalLicense.ActiveLicenseExists",
+        "The driver already has an active international license.");
+
     public static readonly Error LicenseNotFound = Error.NotFound(
         "License.NotFound",
         "The selected license was not found.");

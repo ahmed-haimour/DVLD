@@ -12,6 +12,7 @@ var app = builder.Build();
 
 await app.Services.SeedRolesAsync();
 await app.Services.SeedApplicationTypesAsync();
+await app.Services.SeedLicenseClassesAsync();
 await app.Services.SeedTestTypesAsync();
 
 app.MapGet("/", () => "Hello World!");

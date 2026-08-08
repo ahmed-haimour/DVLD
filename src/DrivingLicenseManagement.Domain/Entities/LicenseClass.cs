@@ -4,6 +4,15 @@ namespace DrivingLicenseManagement.Domain.Entities;
 
 public class LicenseClass : Entity
 {
+    public LicenseClass()
+    {
+    }
+
+    public LicenseClass(Guid id)
+        : base(id)
+    {
+    }
+
     public string ClassName { get; set; } = string.Empty;
     public string ClassDescription { get; set; } = string.Empty;
     public byte MinimumAllowedAge { get; set; }
