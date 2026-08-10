@@ -133,4 +133,16 @@ public static class ApplicationErrors
     public static readonly Error InternationalLicenseNotFound = Error.NotFound(
         "InternationalLicense.NotFound",
         "The selected international license was not found.");
+
+    public static readonly Error LicenseAlreadyDetained = Error.Conflict(
+        "License.AlreadyDetained",
+        "The license already has an unreleased detention.");
+
+    public static readonly Error DetainedLicenseNotFound = Error.NotFound(
+        "DetainedLicense.NotFound",
+        "The selected detained license was not found.");
+
+    public static readonly Error DetainedLicenseAlreadyReleased = Error.Conflict(
+        "DetainedLicense.AlreadyReleased",
+        "The detention has already been released.");
 }

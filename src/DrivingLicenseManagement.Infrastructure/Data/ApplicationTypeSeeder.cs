@@ -18,6 +18,7 @@ public static class ApplicationTypeSeeder
         (ApplicationTypeIds.ReplacementForDamagedLicense, "Replacement for a Damaged Driving License"),
         (ApplicationTypeIds.ReplacementForLostLicense, "Replacement for a Lost Driving License"),
         (ApplicationTypeIds.NewInternationalLicense, "New International Driving License"),
+        (ApplicationTypeIds.ReleaseDetainedDrivingLicense, "Release Detained Driving License"),
     ];
 
     public static async Task SeedApplicationTypesAsync(this IServiceProvider services)

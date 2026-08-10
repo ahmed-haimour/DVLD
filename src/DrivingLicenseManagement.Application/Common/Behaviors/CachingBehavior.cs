@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 
-namespace DrivingLicenseManagement.Application.Common.Behaviours;
+namespace DrivingLicenseManagement.Application.Common.Behaviors;
 
 public sealed class CachingBehavior<TRequest, TResponse>(HybridCache cache,
     ILogger<CachingBehavior<TRequest, TResponse>> logger)

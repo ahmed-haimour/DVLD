@@ -51,6 +51,14 @@ public sealed class RenewLicenseCommandHandler(
             return Result<Guid>.Failure(ApplicationErrors.LicenseNotActive);
         }
 
+        bool hasUnreleasedDetention = await _context.DetainedLicenses
+            .AnyAsync(detention => detention.LicenseId == license.Id && !detention.IsReleased, cancellationToken);
+
+        if (hasUnreleasedDetention)
+        {
+            return Result<Guid>.Failure(ApplicationErrors.LicenseAlreadyDetained);
+        }
+
         var now = DateTime.UtcNow;
 
         if (license.ExpirationDate.Date >= now.Date)

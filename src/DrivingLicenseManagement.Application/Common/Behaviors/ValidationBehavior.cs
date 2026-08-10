@@ -5,14 +5,14 @@ using DrivingLicenseManagement.Application.Common.Models;
 using FluentValidation;
 using MediatR;
 
-namespace DrivingLicenseManagement.Application.Common.Behaviours;
+namespace DrivingLicenseManagement.Application.Common.Behaviors;
 
 public class ValidationBehavior<TRequest, TResponse>
 (IValidator<TRequest>? validator = null) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
         where TResponse : IResult
 {
-     private readonly IValidator<TRequest>? _validator = validator;
+    private readonly IValidator<TRequest>? _validator = validator;
 
     // Result.Failure(List<Error>) and Result<T>.Failure(List<Error>) are both static, and the
     // generic one hides the base with `new`, so DeclaredOnly binds the right one for either
@@ -22,7 +22,7 @@ public class ValidationBehavior<TRequest, TResponse>
         BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly,
         [typeof(List<Error>)])!;
 
-      public async Task<TResponse> Handle(TRequest request,
+    public async Task<TResponse> Handle(TRequest request,
         RequestHandlerDelegate<TResponse> next,
         CancellationToken ct)
     {

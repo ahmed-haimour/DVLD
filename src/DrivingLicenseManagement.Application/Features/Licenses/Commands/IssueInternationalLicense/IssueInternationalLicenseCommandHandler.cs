@@ -58,6 +58,14 @@ public sealed class IssueInternationalLicenseCommandHandler(
             return Result<Guid>.Failure(ApplicationErrors.LicenseNotActive);
         }
 
+        bool hasUnreleasedDetention = await _context.DetainedLicenses
+            .AnyAsync(detention => detention.LicenseId == request.LicenseId && !detention.IsReleased, cancellationToken);
+
+        if (hasUnreleasedDetention)
+        {
+            return Result<Guid>.Failure(ApplicationErrors.LicenseAlreadyDetained);
+        }
+
         // Active and expired are different concepts: an active-but-expired license is not eligible.
         if (localLicense.ExpirationDate.Date < DateTime.UtcNow.Date)
         {

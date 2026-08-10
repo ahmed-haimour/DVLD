@@ -51,6 +51,14 @@ public sealed class ReplaceLicenseCommandHandler(
             return Result<Guid>.Failure(ApplicationErrors.LicenseNotActive);
         }
 
+        bool hasUnreleasedDetention = await _context.DetainedLicenses
+            .AnyAsync(detention => detention.LicenseId == license.Id && !detention.IsReleased, cancellationToken);
+
+        if (hasUnreleasedDetention)
+        {
+            return Result<Guid>.Failure(ApplicationErrors.LicenseAlreadyDetained);
+        }
+
         // A driver may hold licenses for other classes, but never two active for the SAME class.
         bool anotherActiveLicense = await _context.Licenses
             .AnyAsync(other => other.Id != license.Id

@@ -1,10 +1,8 @@
 using System.Reflection;
-using DrivingLicenseManagement.Application.Common.Behaviours;
+using DrivingLicenseManagement.Application.Common.Behaviors;
 using FluentValidation;
-using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace DrivingLicenseManagement.Application;
+namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjection
 {
@@ -16,8 +14,8 @@ public static class DependencyInjection
         {
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
-            //cfg.AddOpenBehavior(typeof(PerformanceBehaviour<,>));
-            //cfg.AddOpenBehavior(typeof(UnhandledExceptionBehaviour<,>));
+            cfg.AddOpenBehavior(typeof(PerformanceBehavior<,>));
+            cfg.AddOpenBehavior(typeof(UnhandledExceptionBehavior<,>));
             cfg.AddOpenBehavior(typeof(CachingBehavior<,>));
         });
 
