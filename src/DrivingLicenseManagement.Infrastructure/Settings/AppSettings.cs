@@ -6,12 +6,24 @@ namespace DrivingLicenseManagement.Infrastructure.Settings;
 public sealed class AppSettings : IAppSettings
 {
     public InternationalLicenseSettings InternationalLicense { get; set; } = new();
+    public ResendSettings Resend { get; set; } = new();
+
+
 
     // Get-only projections the config binder ignores; this is what the Application layer consumes.
     public int InternationalLicenseValidityYears => InternationalLicense.ValidityYears;
+    public string ResendFromEmail => Resend.FromEmail;
+    public string ResendFromName => Resend.FromName;
+
 }
 
 public sealed class InternationalLicenseSettings
 {
     public int ValidityYears { get; set; }
+}
+
+public sealed class ResendSettings
+{
+    public string FromEmail { get; set; } = string.Empty;
+    public string FromName { get; set; } = string.Empty;
 }

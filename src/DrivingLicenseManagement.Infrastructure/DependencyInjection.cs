@@ -2,6 +2,7 @@ using System.Text;
 using DrivingLicenseManagement.Application.Common.Interfaces;
 using DrivingLicenseManagement.Infrastructure.Data;
 using DrivingLicenseManagement.Infrastructure.Identity;
+using DrivingLicenseManagement.Infrastructure.Services;
 using DrivingLicenseManagement.Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Resend;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -46,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<ITokenProvider, TokenProvider>();
         services.AddScoped<ICurrentUser, CurrentUser>();
+        services.AddScoped<IEmailService, ResendEmailService>();
 
         services.AddHttpContextAccessor();
 
@@ -82,6 +85,14 @@ public static class DependencyInjection
                 ValidAudience = jwtSettings["Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"]!)),
             };
+        });
+
+
+        services.AddResend(options =>
+        {
+            options.ApiToken = configuration["Resend:ApiKey"]
+                ?? throw new InvalidOperationException(
+                    "Resend API key is not configured.");
         });
 
         return services;
