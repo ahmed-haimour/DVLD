@@ -1,20 +1,24 @@
-using DrivingLicenseManagement.Application;
-using DrivingLicenseManagement.Infrastructure;
+using DrivingLicenseManagement.Api;
 using DrivingLicenseManagement.Infrastructure.Data;
-using DrivingLicenseManagement.Infrastructure.Identity;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services
+    .AddPresentation(builder.Configuration)
+    .AddApplication()
+    .AddInfrastructure(builder.Configuration);
+
+builder.Host.UseSerilog((context, loggerConfig) =>
+    loggerConfig.ReadFrom.Configuration(context.Configuration));
+
 
 var app = builder.Build();
 
-await app.Services.SeedRolesAsync();
-await app.Services.SeedApplicationTypesAsync();
-await app.Services.SeedLicenseClassesAsync();
-await app.Services.SeedTestTypesAsync();
+await app.InitialiseDatabaseAsync();
 
-app.MapGet("/", () => "Hello World!");
+app.UseCoreMiddlewares(builder.Configuration);
+
+app.MapControllers();
 
 app.Run();
