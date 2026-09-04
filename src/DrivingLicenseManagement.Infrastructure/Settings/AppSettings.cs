@@ -8,6 +8,8 @@ public sealed class AppSettings : IAppSettings
     public InternationalLicenseSettings InternationalLicense { get; set; } = new();
     public ResendSettings Resend { get; set; } = new();
 
+    public string FrontendUrl { get; set; } = string.Empty;
+
 
 
     // Get-only projections the config binder ignores; this is what the Application layer consumes.

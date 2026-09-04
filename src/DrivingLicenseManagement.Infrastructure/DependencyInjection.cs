@@ -3,6 +3,7 @@ using DrivingLicenseManagement.Application.Common.Interfaces;
 using DrivingLicenseManagement.Infrastructure.Data;
 using DrivingLicenseManagement.Infrastructure.Identity;
 using DrivingLicenseManagement.Infrastructure.Services;
+using DrivingLicenseManagement.Infrastructure.Services.Email;
 using DrivingLicenseManagement.Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -49,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<ITokenProvider, TokenProvider>();
         services.AddScoped<ICurrentUser, CurrentUser>();
+        services.AddSingleton<EmailTemplateRenderer>();
         services.AddScoped<IEmailService, ResendEmailService>();
 
         services.AddHttpContextAccessor();
@@ -94,6 +96,11 @@ public static class DependencyInjection
             options.ApiToken = configuration["Resend:ApiKey"]
                 ?? throw new InvalidOperationException(
                     "Resend API key is not configured.");
+        });
+
+        services.Configure<DataProtectionTokenProviderOptions>(options =>
+        {
+            options.TokenLifespan = TimeSpan.FromHours(1);
         });
 
         return services;

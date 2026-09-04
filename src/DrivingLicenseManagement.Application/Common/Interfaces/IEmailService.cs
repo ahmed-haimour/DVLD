@@ -2,9 +2,8 @@ namespace DrivingLicenseManagement.Application.Common.Interfaces;
 
 public interface IEmailService
 {
-    Task SendAsync(
+    Task SendPasswordResetAsync(
         string toEmail,
-        string subject,
-        string body,
+        string resetUrl,
         CancellationToken cancellationToken = default);
 }

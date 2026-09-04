@@ -268,4 +268,40 @@ public class IdentityService(
         throw new Exception();
     }
 
+    public async Task<string?> GeneratePasswordResetTokenAsync(string email, CancellationToken ct = default)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        return await _userManager.GeneratePasswordResetTokenAsync(user);
+    }
+
+    public async Task<Result> ResetPasswordAsync(string email, string token, string newPassword, CancellationToken ct = default)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user is null)
+            return Result.Failure(Error.Unauthorized("Invalid_Password_Reset_Request", 
+                "The password reset request is invalid or has expired."));
+
+        if (!user.IsActive)
+            return Result.Failure(Error.Forbidden("User_Inactive", "This account has been deactivated."));
+
+        await using var transaction = await _context.Database.BeginTransactionAsync(ct);
+
+        var resetResult = await _userManager.ResetPasswordAsync(user, token, newPassword);
+
+        if (!resetResult.Succeeded)
+            return Result.Failure(Error.Validation("Password_Reset_Failed", string.Join("; ", resetResult.Errors.Select(e => e.Description))));
+
+        await RevokeActiveRefreshTokensAsync(user.Id, ct);
+
+        await transaction.CommitAsync(ct);
+
+        return Result.Success();
+    }
 }

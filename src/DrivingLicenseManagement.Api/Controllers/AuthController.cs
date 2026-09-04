@@ -1,7 +1,7 @@
+using DrivingLicenseManagement.Api.Contracts.Auth;
 using DrivingLicenseManagement.Application.Features.Auth.Commands.Login;
 using DrivingLicenseManagement.Application.Features.Auth.Commands.Logout;
 using DrivingLicenseManagement.Application.Features.Auth.Commands.RefreshToken;
-using DrivingLicenseManagement.Application.Features.Auth.Dtos;
 using DrivingLicenseManagement.Application.Features.Auth.Queries.GetCurrentUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -21,18 +21,21 @@ public sealed class AuthController(ISender sender) : ApiController
     [EndpointName("Login")]
     [EndpointSummary("Authenticate a user")]
     [EndpointDescription("Validates user credentials and returns an access and refresh token pair.")]
-    [ProducesResponseType(typeof(TokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType( typeof(ProblemDetails),StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
-    public async Task<IActionResult> Login(LoginCommand command, CancellationToken ct)
+    public async Task<IActionResult> Login(LoginRequest request, CancellationToken ct)
     {
-        var result = await _sender.Send(command, ct);
+        var result = await _sender.Send(new LoginCommand(request.Email, request.Password), ct);
 
-        return result.IsSuccess
-            ? Ok(result.Value)
-            : Problem(result.Errors!);
+        if (result.IsError)
+            return Problem(result.Errors!);
+
+        var token = result.Value;
+
+        return Ok(new LoginResponse(token.AccessToken!, token.RefreshToken!, token.ExpiresOnUtc));
     }
 
     [AllowAnonymous]
@@ -44,9 +47,9 @@ public sealed class AuthController(ISender sender) : ApiController
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
-    public async Task<IActionResult> Logout(LogoutCommand command, CancellationToken ct)
+    public async Task<IActionResult> Logout(LogoutRequest request, CancellationToken ct)
     {
-        var result = await _sender.Send(command, ct);
+        var result = await _sender.Send(new LogoutCommand(request.RefreshToken), ct);
 
         return result.IsSuccess
             ? NoContent()
@@ -58,18 +61,21 @@ public sealed class AuthController(ISender sender) : ApiController
     [EndpointName("RefreshToken")]
     [EndpointSummary("Exchange a refresh token for a new token pair")]
     [EndpointDescription("Exchanges a valid refresh token for a new access and refresh token pair.")]
-    [ProducesResponseType(typeof(TokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(RefreshTokenResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
-    public async Task<IActionResult> RefreshToken(RefreshTokenCommand command, CancellationToken ct)
+    public async Task<IActionResult> RefreshToken(RefreshTokenRequest request, CancellationToken ct)
     {
-        var result = await _sender.Send(command, ct);
+        var result = await _sender.Send(new RefreshTokenCommand(request.RefreshToken), ct);
 
-        return result.IsSuccess
-            ? Ok(result.Value)
-            : Problem(result.Errors!);
+        if (result.IsError)
+            return Problem(result.Errors!);
+
+        var token = result.Value;
+
+        return Ok(new RefreshTokenResponse(token.AccessToken!, token.RefreshToken!, token.ExpiresOnUtc));
     }
 
     [Authorize]
@@ -77,7 +83,7 @@ public sealed class AuthController(ISender sender) : ApiController
     [EndpointName("GetCurrentUser")]
     [EndpointSummary("Get the authenticated user's profile")]
     [EndpointDescription("Returns the currently authenticated user's account details.")]
-    [ProducesResponseType(typeof(CurrentUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(GetCurrentUserResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
@@ -87,7 +93,7 @@ public sealed class AuthController(ISender sender) : ApiController
         var result = await _sender.Send(new GetCurrentUserQuery(), ct);
 
         return result.IsSuccess
-            ? Ok(result.Value)
+            ? Ok(result.Value.ToResponse())
             : Problem(result.Errors!);
     }
 }
