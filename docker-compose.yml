@@ -10,6 +10,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=host.docker.internal,${MSSQL_PORT:-1433};Database=${MSSQL_DATABASE:-DrivingLicenseDB};User Id=${MSSQL_USER};Password=${MSSQL_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=true
       - Resend__ApiKey=${RESEND_API_KEY}
+      - EmailVerification__Secret=${EMAIL_VERIFICATION_SECRET}
     # Docker Desktop resolves host.docker.internal on its own; the mapping is declared
     # explicitly so the container also reaches the Windows host under plain Docker Engine.
     extra_hosts:

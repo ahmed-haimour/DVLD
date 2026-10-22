@@ -6,4 +6,5 @@ public sealed record AppUserDto(
     string? UserName,
     Guid PersonId,
     bool IsActive,
+    bool EmailConfirmed,
     IReadOnlyList<string> Roles);

@@ -34,4 +34,23 @@ public sealed class ResendEmailService(
 
         await _resend.EmailSendAsync(message, cancellationToken);
     }
+
+    public async Task SendEmailVerificationCodeAsync(string toEmail, string verificationCode, CancellationToken cancellationToken = default)
+    {
+        var htmlBody = await _templateRenderer.RenderAsync("ConfirmEmail.html",
+            new Dictionary<string, string>
+            {
+                ["VerificationCode"] = verificationCode
+            }, cancellationToken);
+
+        var message = new EmailMessage
+        {
+            From = $"{_appSettings.ResendFromName} <{_appSettings.ResendFromEmail}>",
+            To = toEmail,
+            Subject = "Verify your DVLD email",
+            HtmlBody = htmlBody
+        };
+    
+        await _resend.EmailSendAsync(message, cancellationToken);
+    }
 }

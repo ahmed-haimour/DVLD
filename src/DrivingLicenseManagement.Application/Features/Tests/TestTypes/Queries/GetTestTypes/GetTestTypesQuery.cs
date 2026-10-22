@@ -5,7 +5,7 @@ using DrivingLicenseManagement.Application.Features.TestTypes.Dtos;
 namespace DrivingLicenseManagement.Application.Features.TestTypes.Queries.GetTestTypes;
 
 public sealed record GetTestTypesQuery
-    : ICachedQuery<Result<IReadOnlyList<TestTypeResponse>>>
+    : ICachedQuery<Result<IReadOnlyList<TestTypeDto>>>
 {
     public string CacheKey => "test-types";
 

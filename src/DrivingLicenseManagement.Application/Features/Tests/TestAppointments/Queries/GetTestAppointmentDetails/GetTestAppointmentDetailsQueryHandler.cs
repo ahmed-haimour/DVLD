@@ -10,12 +10,12 @@ namespace DrivingLicenseManagement.Application.Features.Tests.TestAppointments.Q
 public sealed class GetTestAppointmentDetailsQueryHandler(
     IAppDbContext context,
     IIdentityService identityService)
-    : IRequestHandler<GetTestAppointmentDetailsQuery, Result<TestAppointmentDetailsResponse>>
+    : IRequestHandler<GetTestAppointmentDetailsQuery, Result<TestAppointmentDetailsDto>>
 {
     private readonly IAppDbContext _context = context;
     private readonly IIdentityService _identityService = identityService;
 
-    public async Task<Result<TestAppointmentDetailsResponse>> Handle(
+    public async Task<Result<TestAppointmentDetailsDto>> Handle(
         GetTestAppointmentDetailsQuery request,
         CancellationToken cancellationToken)
     {
@@ -43,7 +43,7 @@ public sealed class GetTestAppointmentDetailsQueryHandler(
 
         if (row is null)
         {
-            return Result<TestAppointmentDetailsResponse>.Failure(ApplicationErrors.TestAppointmentNotFound);
+            return Result<TestAppointmentDetailsDto>.Failure(ApplicationErrors.TestAppointmentNotFound);
         }
 
         var userResult = await _identityService.GetUserByIdAsync(row.CreatedByUserId, cancellationToken);
@@ -51,7 +51,7 @@ public sealed class GetTestAppointmentDetailsQueryHandler(
             ? userResult.Value.UserName ?? string.Empty
             : string.Empty;
 
-        var response = new TestAppointmentDetailsResponse(
+        var response = new TestAppointmentDetailsDto(
             row.Id,
             row.LocalDrivingLicenseApplicationId,
             row.TestTypeId,
@@ -66,6 +66,6 @@ public sealed class GetTestAppointmentDetailsQueryHandler(
             row.TestResult,
             row.TestNotes);
 
-        return Result<TestAppointmentDetailsResponse>.Success(response);
+        return Result<TestAppointmentDetailsDto>.Success(response);
     }
 }

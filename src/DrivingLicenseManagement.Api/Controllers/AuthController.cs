@@ -24,6 +24,7 @@ public sealed class AuthController(ISender sender) : ApiController
     [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType( typeof(ProblemDetails),StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> Login(LoginRequest request, CancellationToken ct)
@@ -33,9 +34,24 @@ public sealed class AuthController(ISender sender) : ApiController
         if (result.IsError)
             return Problem(result.Errors!);
 
-        var token = result.Value;
+        var loginResult = result.Value;
 
-        return Ok(new LoginResponse(token.AccessToken!, token.RefreshToken!, token.ExpiresOnUtc));
+        if (loginResult.RequiresEmailVerification)
+        {
+            return Ok(new LoginResponse(
+                RequiresEmailVerification: true,
+                AccessToken: null,
+                RefreshToken: null,
+                ExpiresOnUtc: null));
+        }
+
+        var tokens = loginResult.Tokens!;
+
+        return Ok(new LoginResponse(
+            RequiresEmailVerification: false,
+            AccessToken: tokens.AccessToken,
+            RefreshToken: tokens.RefreshToken,
+            ExpiresOnUtc: tokens.ExpiresOnUtc));
     }
 
     [AllowAnonymous]

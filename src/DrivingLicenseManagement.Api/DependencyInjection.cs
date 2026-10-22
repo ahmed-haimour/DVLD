@@ -61,6 +61,40 @@ public static class DependencyInjection
                 limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                 limiterOptions.AutoReplenishment = true;
             });
+
+            options.AddPolicy("EmailVerification", httpContext =>
+            {
+                var ipAddress =  httpContext.Connection.RemoteIpAddress?.ToString()
+                    ?? "unknown";
+
+                return RateLimitPartition.GetSlidingWindowLimiter(
+                    partitionKey: ipAddress,
+                    factory: _ => new SlidingWindowRateLimiterOptions
+                    {
+                        PermitLimit = 10,
+                        Window = TimeSpan.FromMinutes(1),
+                        SegmentsPerWindow = 6,
+                        QueueLimit = 0,
+                        AutoReplenishment = true
+                    });
+            });
+
+
+            options.AddPolicy("EmailVerificationResend", httpContext =>
+            {
+                var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+                return RateLimitPartition.GetSlidingWindowLimiter(
+                    partitionKey: ipAddress,
+                    factory: _ => new SlidingWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromMinutes(1),
+                        SegmentsPerWindow = 6,
+                        QueueLimit = 0,
+                        AutoReplenishment = true
+                    });
+            });
         });
 
         return services;

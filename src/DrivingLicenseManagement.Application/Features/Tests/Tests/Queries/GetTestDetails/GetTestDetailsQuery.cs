@@ -5,4 +5,4 @@ using MediatR;
 namespace DrivingLicenseManagement.Application.Features.Tests.Tests.Queries.GetTestDetails;
 
 public sealed record GetTestDetailsQuery(
-    Guid TestId) : IRequest<Result<TestDetailsResponse>>;
+    Guid TestId) : IRequest<Result<TestDetailsDto>>;

@@ -6,4 +6,4 @@ namespace DrivingLicenseManagement.Application.Features.Tests.TestAppointments.Q
 
 public sealed record GetTestAppointmentsQuery(
     Guid LocalDrivingLicenseApplicationId,
-    Guid TestTypeId) : IRequest<Result<IReadOnlyList<TestAppointmentResponse>>>;
+    Guid TestTypeId) : IRequest<Result<IReadOnlyList<TestAppointmentDto>>>;

@@ -41,7 +41,7 @@ public static class DependencyInjection
             options.Password.RequireUppercase = false;
             options.Password.RequireLowercase = false;
             options.Password.RequiredUniqueChars = 1;
-            options.SignIn.RequireConfirmedAccount = false;
+            options.SignIn.RequireConfirmedAccount = true;
         })
         .AddRoles<IdentityRole<Guid>>()
         .AddEntityFrameworkStores<AppDbContext>()
@@ -52,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUser, CurrentUser>();
         services.AddSingleton<EmailTemplateRenderer>();
         services.AddScoped<IEmailService, ResendEmailService>();
+        services.AddSingleton<IEmailVerificationCodeService, EmailVerificationCodeService>(); 
 
         services.AddHttpContextAccessor();
 

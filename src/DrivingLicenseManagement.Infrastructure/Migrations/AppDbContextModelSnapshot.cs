@@ -173,6 +173,39 @@ namespace DrivingLicenseManagement.Infrastructure.Migrations
                     b.ToTable("Drivers", (string)null);
                 });
 
+            modelBuilder.Entity("DrivingLicenseManagement.Domain.Entities.EmailVerificationCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FailedAttempts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("EmailVerificationCodes", (string)null);
+                });
+
             modelBuilder.Entity("DrivingLicenseManagement.Domain.Entities.InternationalLicense", b =>
                 {
                     b.Property<Guid>("Id")
@@ -801,6 +834,15 @@ namespace DrivingLicenseManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Person");
+                });
+
+            modelBuilder.Entity("DrivingLicenseManagement.Domain.Entities.EmailVerificationCode", b =>
+                {
+                    b.HasOne("DrivingLicenseManagement.Infrastructure.Identity.AppUser", null)
+                        .WithOne()
+                        .HasForeignKey("DrivingLicenseManagement.Domain.Entities.EmailVerificationCode", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("DrivingLicenseManagement.Domain.Entities.InternationalLicense", b =>

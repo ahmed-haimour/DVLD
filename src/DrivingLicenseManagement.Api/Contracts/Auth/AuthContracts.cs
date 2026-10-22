@@ -8,7 +8,11 @@ namespace DrivingLicenseManagement.Api.Contracts.Auth;
 
 public sealed record LoginRequest(string Email, string Password);
 
-public sealed record LoginResponse(string AccessToken, string RefreshToken, DateTime ExpiresOnUtc);
+public sealed record LoginResponse(
+    bool RequiresEmailVerification,
+    string? AccessToken,
+    string? RefreshToken,
+    DateTime? ExpiresOnUtc);
 
 public sealed record LogoutRequest(string RefreshToken);
 

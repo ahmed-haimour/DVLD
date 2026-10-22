@@ -3,7 +3,9 @@ using DrivingLicenseManagement.Application.Common.Constants;
 using DrivingLicenseManagement.Application.Features.Identity.Commands.ChangePassword;
 using DrivingLicenseManagement.Application.Features.Identity.Commands.CreateUser;
 using DrivingLicenseManagement.Application.Features.Identity.Commands.ForgotPassword;
+using DrivingLicenseManagement.Application.Features.Identity.Commands.ResendEmailVerification;
 using DrivingLicenseManagement.Application.Features.Identity.Commands.ResetPassword;
+using DrivingLicenseManagement.Application.Features.Identity.Commands.VerifyEmail;
 using DrivingLicenseManagement.Application.Features.Identity.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -134,6 +136,54 @@ public sealed class IdentityController(ISender sender) : ApiController
             request.ConfirmPassword);
 
         var result = await _sender.Send(command, ct);
+
+        return result.IsSuccess
+            ? NoContent()
+            : Problem(result.Errors!);
+    }
+
+
+    [EnableRateLimiting("EmailVerification")]
+    [AllowAnonymous]
+    [HttpPost("verify-email")]
+    [EndpointName("VerifyEmail")]
+    [EndpointSummary("Verify an email address")]
+    [EndpointDescription("Verifies an account email address using the six-digit verification code sent to the account email.")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> VerifyEmail(VerifyEmailRequest request, CancellationToken ct)
+    {
+        var command = new VerifyEmailCommand(
+            request.Email,
+            request.Code);
+
+        var result = await _sender.Send(command, ct);
+
+        return result.IsSuccess
+            ? NoContent()
+            : Problem(result.Errors!);
+    }
+
+
+    [EnableRateLimiting("EmailVerificationResend")]
+    [AllowAnonymous]
+    [HttpPost("resend-email-verification")]
+    [EndpointName("ResendEmailVerification")]
+    [EndpointSummary("Resend email verification code")]
+    [EndpointDescription("Generates and sends a new six-digit email verification code for an unverified account.")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> ResendEmailVerification(
+        ResendEmailVerificationRequest request,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(new ResendEmailVerificationCommand(request.Email), ct);
 
         return result.IsSuccess
             ? NoContent()

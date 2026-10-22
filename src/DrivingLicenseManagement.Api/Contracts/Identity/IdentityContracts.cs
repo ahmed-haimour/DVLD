@@ -37,6 +37,14 @@ public sealed record ResetPasswordRequest(
     string NewPassword,
     string ConfirmPassword);
 
+
+public sealed record VerifyEmailRequest(
+    string Email,
+    string Code);
+
+public sealed record ResendEmailVerificationRequest(
+    string Email);
+
 // *** Responses ***
 
 public sealed record UserResponse(

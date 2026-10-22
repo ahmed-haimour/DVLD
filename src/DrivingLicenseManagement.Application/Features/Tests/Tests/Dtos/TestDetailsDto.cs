@@ -1,6 +1,6 @@
 namespace DrivingLicenseManagement.Application.Features.Tests.Tests.Dtos;
 
-public sealed record TestDetailsResponse(
+public sealed record TestDetailsDto(
     Guid Id,
     Guid TestAppointmentId,
     Guid TestTypeId,

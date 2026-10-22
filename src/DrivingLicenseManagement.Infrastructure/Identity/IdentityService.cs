@@ -4,6 +4,7 @@ using DrivingLicenseManagement.Application.Common.Interfaces;
 using DrivingLicenseManagement.Application.Common.Models;
 using DrivingLicenseManagement.Application.Features.Identity.Dtos;
 using DrivingLicenseManagement.Application.Features.Identity.Enums;
+using DrivingLicenseManagement.Domain.Entities;
 using DrivingLicenseManagement.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -14,12 +15,15 @@ public class IdentityService(
     UserManager<AppUser> userManager,
     RoleManager<IdentityRole<Guid>> roleManager,
     AppDbContext context,
+    IEmailVerificationCodeService verificationCodeService,
     IUserClaimsPrincipalFactory<AppUser> userClaimsPrincipalFactory) : IIdentityService
 {
     private readonly UserManager<AppUser> _userManager = userManager;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager = roleManager;
     private readonly AppDbContext _context = context;
     private readonly IUserClaimsPrincipalFactory<AppUser> _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
+
+    private readonly IEmailVerificationCodeService _verificationCodeService = verificationCodeService;
 
     public async Task<bool> PersonHasUserAccountAsync(Guid personId, CancellationToken ct = default)
     {
@@ -38,7 +42,7 @@ public class IdentityService(
             UserName = userName,
             Email = email,
             IsActive = true,
-            EmailConfirmed = true,
+            EmailConfirmed = false,
         };
 
         // Create the user and assign the role atomically: if either step fails,
@@ -57,7 +61,7 @@ public class IdentityService(
 
         await transaction.CommitAsync(ct);
 
-        return new AppUserDto(user.Id, user.Email!, user.UserName, user.PersonId, user.IsActive, [role]);
+        return new AppUserDto(user.Id, user.Email!, user.UserName, user.PersonId, user.IsActive, user.EmailConfirmed, [role]);
     }
 
     public async Task<Result<AppUserDto>> AuthenticateAsync(string email, string password, CancellationToken ct = default)
@@ -70,13 +74,13 @@ public class IdentityService(
         if (!user.IsActive)
             return Error.Forbidden("User_Inactive", "This account has been deactivated.");
 
-        if (!user.EmailConfirmed)
-            return Error.Conflict("Email_Not_Confirmed", $"email '{UtilityService.MaskEmail(email)}' not confirmed");
-
         if (!await _userManager.CheckPasswordAsync(user, password))
             return Error.Unauthorized("Invalid_Login_Attempt", "Email / Password are incorrect");
 
-        return new AppUserDto(user.Id, user.Email!, user.UserName, user.PersonId, user.IsActive, (await _userManager.GetRolesAsync(user)).ToList()!);
+        // if (!user.EmailConfirmed)
+        //     return Error.Conflict("Email_Not_Confirmed", $"email '{UtilityService.MaskEmail(email)}' not confirmed");
+
+        return new AppUserDto(user.Id, user.Email!, user.UserName, user.PersonId, user.IsActive, user.EmailConfirmed, (await _userManager.GetRolesAsync(user)).ToList()!);
     }
 
     public async Task<Result> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken ct = default)
@@ -143,7 +147,7 @@ public class IdentityService(
 
         var roles = await _userManager.GetRolesAsync(user);
 
-        return new AppUserDto(user.Id, user.Email!, user.UserName, user.PersonId, user.IsActive, roles.ToList());
+        return new AppUserDto(user.Id, user.Email!, user.UserName, user.PersonId, user.IsActive, user.EmailConfirmed, roles.ToList());
     }
 
     public async Task<Result<PaginatedList<UserResponse>>> GetAllUsersAsync(
@@ -303,5 +307,216 @@ public class IdentityService(
         await transaction.CommitAsync(ct);
 
         return Result.Success();
+    }
+
+    public async Task<Result<string?>> EnsureEmailVerificationCodeAsync(Guid userId, CancellationToken ct = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        if (user is null)
+        {
+            return Result<string?>.Failure(Error.NotFound("User_Not_Found", $"User with id '{userId}' was not found."));
+        }
+
+        if (user.EmailConfirmed)
+        {
+            return Result<string?>.Failure(Error.Conflict("Email_Already_Verified", 
+            "The email address has already been verified."));
+        }
+
+        var now = DateTime.UtcNow;
+
+        var verification = await _context.EmailVerificationCodes
+            .SingleOrDefaultAsync(x => x.UserId == user.Id, ct);
+
+        if (verification is not null)
+        {
+            // A usable code already exists.
+            // Keep it instead of generating and emailing another one.
+            if (verification.ExpiresAt > now) 
+            {
+                return Result<string?>.Success(null);
+            }
+        }
+
+        var code = _verificationCodeService.GenerateCode();
+        var codeHash = _verificationCodeService.HashCode(code);
+
+        if (verification is null)
+        {
+            verification = new EmailVerificationCode
+            {
+                UserId = user.Id,
+                CodeHash = codeHash,
+                SentAt = now,
+                ExpiresAt = now.AddMinutes(10),
+                FailedAttempts = 0
+            };
+
+            _context.EmailVerificationCodes.Add(verification);
+        }
+        else
+        {
+            verification.CodeHash = codeHash;
+            verification.SentAt = now;
+            verification.ExpiresAt = now.AddMinutes(10);
+            verification.FailedAttempts = 0;
+        }
+
+        await _context.SaveChangesAsync(ct);
+
+        return Result<string?>.Success(code);
+    }
+
+    public async Task<Result> VerifyEmailAsync(string email, string code, CancellationToken ct = default)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user is null)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "Invalid_Email_Verification",
+                    "The email verification request is invalid."));
+        }
+
+        if (user.EmailConfirmed)
+        {
+            return Result.Failure(
+                Error.Conflict(
+                    "Email_Already_Verified",
+                    "The email address has already been verified."));
+        }
+
+        var verification = await _context.EmailVerificationCodes
+            .SingleOrDefaultAsync(
+                x => x.UserId == user.Id,
+                ct);
+
+        if (verification is null)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "Invalid_Email_Verification",
+                    "The email verification request is invalid."));
+        }
+
+        var now = DateTime.UtcNow;
+
+        // This verification window has expired.
+        if (verification.ExpiresAt <= now)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "Verification_Code_Expired",
+                    "The verification code has expired."));
+        }
+
+        // The user has already used all 5 attempts
+        // for the current verification window.
+        if (verification.FailedAttempts >= 5)
+        {
+            return Result.Failure(
+                Error.Validation(
+                    "Verification_Attempts_Exceeded",
+                    "Too many incorrect verification attempts."));
+        }
+
+        var isValid = _verificationCodeService.VerifyCode(
+            code,
+            verification.CodeHash);
+
+        if (!isValid)
+        {
+            verification.FailedAttempts++;
+
+            await _context.SaveChangesAsync(ct);
+
+            return Result.Failure(
+                Error.Validation(
+                    "Invalid_Verification_Code",
+                    "The verification code is invalid."));
+        }
+
+        user.EmailConfirmed = true;
+
+        _context.EmailVerificationCodes.Remove(verification);
+
+        await _context.SaveChangesAsync(ct);
+
+        return Result.Success();
+    }
+
+    public async Task<Result<string>> ResendEmailVerificationCodeAsync(string email, CancellationToken ct = default)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user is null)
+        {
+            return Result<string>.Failure(
+                Error.Validation(
+                    "Invalid_Email_Verification",
+                    "The email verification request is invalid."));
+        }
+
+
+        if (user.EmailConfirmed)
+        {
+            return Result<string>.Failure(
+                Error.Conflict(
+                    "Email_Already_Verified",
+                    "The email address has already been verified."));
+        }
+
+        var verification = await _context.EmailVerificationCodes
+            .SingleOrDefaultAsync(x => x.UserId == user.Id, ct);
+
+        if (verification is null)
+        {
+            return Result<string>.Failure(
+                Error.Validation(
+                    "Invalid_Email_Verification",
+                    "No pending email verification exists."));
+        }
+
+        var now = DateTime.UtcNow;
+
+        var isExpired = verification.ExpiresAt <= now;
+        
+        // Current verification window is still active,
+        // and all attempts have been used.
+        if (!isExpired && verification.FailedAttempts >= 5)
+        {
+            return Result<string>.Failure(
+                Error.Validation(
+                    "Verification_Attempts_Exceeded",
+                    "Too many incorrect attempts."));
+        }
+        
+        // Don't allow repeated email sending.
+        if (verification.SentAt.AddMinutes(1) > now)
+        {
+            return Result<string>.Failure(
+                Error.Validation(
+                    "Verification_Resend_Cooldown",
+                    "Please wait before requesting another verification code."));
+        }
+        
+        var code = _verificationCodeService.GenerateCode();
+        var codeHash = _verificationCodeService.HashCode(code);
+        
+        verification.CodeHash = codeHash;
+        verification.SentAt = now;
+        verification.ExpiresAt = now.AddMinutes(10);
+        
+        if (isExpired)
+        {
+            verification.FailedAttempts = 0;
+        }
+        
+        await _context.SaveChangesAsync(ct);
+        
+        return Result<string>.Success(code);
+
     }
 }

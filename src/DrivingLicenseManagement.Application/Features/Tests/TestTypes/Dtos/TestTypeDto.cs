@@ -1,6 +1,6 @@
 namespace DrivingLicenseManagement.Application.Features.TestTypes.Dtos;
 
-public sealed record TestTypeResponse(
+public sealed record TestTypeDto(
     Guid Id,
     string TestTypeTitle,
     string TestTypeDescription,

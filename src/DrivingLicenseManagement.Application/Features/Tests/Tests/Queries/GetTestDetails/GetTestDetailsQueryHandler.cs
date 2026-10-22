@@ -10,12 +10,12 @@ namespace DrivingLicenseManagement.Application.Features.Tests.Tests.Queries.GetT
 public sealed class GetTestDetailsQueryHandler(
     IAppDbContext context,
     IIdentityService identityService)
-    : IRequestHandler<GetTestDetailsQuery, Result<TestDetailsResponse>>
+    : IRequestHandler<GetTestDetailsQuery, Result<TestDetailsDto>>
 {
     private readonly IAppDbContext _context = context;
     private readonly IIdentityService _identityService = identityService;
 
-    public async Task<Result<TestDetailsResponse>> Handle(
+    public async Task<Result<TestDetailsDto>> Handle(
         GetTestDetailsQuery request,
         CancellationToken cancellationToken)
     {
@@ -37,7 +37,7 @@ public sealed class GetTestDetailsQueryHandler(
 
         if (row is null)
         {
-            return Result<TestDetailsResponse>.Failure(ApplicationErrors.TestNotFound);
+            return Result<TestDetailsDto>.Failure(ApplicationErrors.TestNotFound);
         }
 
         var userResult = await _identityService.GetUserByIdAsync(row.CreatedByUserId, cancellationToken);
@@ -45,7 +45,7 @@ public sealed class GetTestDetailsQueryHandler(
             ? userResult.Value.UserName ?? string.Empty
             : string.Empty;
 
-        var response = new TestDetailsResponse(
+        var response = new TestDetailsDto(
             row.Id,
             row.TestAppointmentId,
             row.TestTypeId,
@@ -55,6 +55,6 @@ public sealed class GetTestDetailsQueryHandler(
             row.AppointmentDate,
             createdByUserName);
 
-        return Result<TestDetailsResponse>.Success(response);
+        return Result<TestDetailsDto>.Success(response);
     }
 }

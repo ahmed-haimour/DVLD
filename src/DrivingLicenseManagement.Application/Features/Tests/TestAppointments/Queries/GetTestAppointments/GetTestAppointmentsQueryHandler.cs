@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 namespace DrivingLicenseManagement.Application.Features.Tests.TestAppointments.Queries.GetTestAppointments;
 
 public sealed class GetTestAppointmentsQueryHandler(IAppDbContext context)
-    : IRequestHandler<GetTestAppointmentsQuery, Result<IReadOnlyList<TestAppointmentResponse>>>
+    : IRequestHandler<GetTestAppointmentsQuery, Result<IReadOnlyList<TestAppointmentDto>>>
 {
     private readonly IAppDbContext _context = context;
 
-    public async Task<Result<IReadOnlyList<TestAppointmentResponse>>> Handle(
+    public async Task<Result<IReadOnlyList<TestAppointmentDto>>> Handle(
         GetTestAppointmentsQuery request,
         CancellationToken cancellationToken)
     {
@@ -20,7 +20,7 @@ public sealed class GetTestAppointmentsQueryHandler(IAppDbContext context)
             .Where(appointment => appointment.LocalDrivingLicenseApplicationId == request.LocalDrivingLicenseApplicationId
                 && appointment.TestTypeId == request.TestTypeId)
             .OrderBy(appointment => appointment.AppointmentDate)
-            .Select(appointment => new TestAppointmentResponse(
+            .Select(appointment => new TestAppointmentDto(
                 appointment.Id,
                 appointment.TestTypeId,
                 appointment.AppointmentDate,
@@ -29,6 +29,6 @@ public sealed class GetTestAppointmentsQueryHandler(IAppDbContext context)
                 appointment.Test != null ? appointment.Test.TestResult : (bool?)null))
             .ToListAsync(cancellationToken);
 
-        return Result<IReadOnlyList<TestAppointmentResponse>>.Success(appointments);
+        return Result<IReadOnlyList<TestAppointmentDto>>.Success(appointments);
     }
 }
